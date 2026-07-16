@@ -1,0 +1,57 @@
+name: Build preload.so
+
+on:
+  push:
+    branches: [ main ]
+  pull_request:
+    branches: [ main ]
+  workflow_dispatch:
+
+jobs:
+  build:
+    runs-on: ubuntu-22.04
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Download Android NDK r29
+        run: |
+          curl -sL https://dl.google.com/android/repository/android-ndk-r29.0.14206865-linux-x86_64.zip -o /tmp/ndk.zip
+          sudo mkdir -p /opt/android-ndk
+          sudo unzip -q /tmp/ndk.zip -d /opt/
+          sudo mv /opt/android-ndk-r29.0.14206865 /opt/android-ndk
+          echo "ANDROID_NDK_HOME=/opt/android-ndk" >> $GITHUB_ENV
+          echo "NDK_ROOT=/opt/android-ndk" >> $GITHUB_ENV
+          echo "/opt/android-ndk/toolchains/llvm/prebuilt/linux-x86_64/bin" >> $GITHUB_PATH
+
+      - name: Install build dependencies
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y lld cpio
+
+      - name: Build default target
+        run: |
+          cd CyberMeowfia/IonStack/CVE-2026-43499/exploit
+          make PROJECT=blazer-CP2A.260605.012
+
+      - name: Upload preload.so
+        uses: actions/upload-artifact@v4
+        with:
+          name: preload-so
+          path: CyberMeowfia/IonStack/CVE-2026-43499/exploit/build/*/bin/preload.so
+
+      - name: Build all targets
+        if: github.event_name == 'workflow_dispatch'
+        run: |
+          cd CyberMeowfia/IonStack/CVE-2026-43499/exploit
+          make list-projects | while read -r project; do
+            echo "Building $project"
+            make PROJECT="$project" || echo "Failed to build $project"
+          done
+
+      - name: Upload all builds
+        if: github.event_name == 'workflow_dispatch'
+        uses: actions/upload-artifact@v4
+        with:
+          name: preload-so-all-targets
+          path: CyberMeowfia/IonStack/CVE-2026-43499/exploit/build/*/bin/preload.so
