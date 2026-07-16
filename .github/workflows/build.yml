@@ -13,6 +13,8 @@ jobs:
 
     steps:
       - uses: actions/checkout@v4
+        with:
+          submodules: recursive
 
       - name: Download Android NDK r29
         run: |
@@ -27,7 +29,12 @@ jobs:
       - name: Install build dependencies
         run: |
           sudo apt-get update
-          sudo apt-get install -y lld cpio
+          sudo apt-get install -y lld cpio python3
+
+      - name: Generate target.h from symbols.txt
+        run: |
+          python3 generate_target.py > CyberMeowfia/IonStack/CVE-2026-43499/exploit/src/targets/blazer-CP2A.260605.012/target.h
+          echo "Generated target.h from symbols.txt"
 
       - name: Build default target
         run: |
