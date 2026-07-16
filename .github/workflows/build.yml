@@ -19,6 +19,7 @@ jobs:
       - name: Download Android NDK r29
         run: |
           curl -sL https://dl.google.com/android/repository/android-ndk-r29.0.14206865-linux-x86_64.zip -o /tmp/ndk.zip
+          echo "22105e410cf29afcf163760cc95522b9fb981121  /tmp/ndk.zip" | sha1sum -c -
           sudo mkdir -p /opt/android-ndk
           sudo unzip -q /tmp/ndk.zip -d /opt/
           sudo mv /opt/android-ndk-r29.0.14206865 /opt/android-ndk
